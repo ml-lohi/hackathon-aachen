@@ -1,6 +1,7 @@
 import numpy as np
 from utils import processing
 from scipy import ndimage
+from scipy.fftpack import fft
 
 def read_data(file_name):
     """
@@ -30,3 +31,16 @@ def filter_gauss(image, kernel_factor, sigma):
     filter = gauss(line, sigma=sigma)
     data_smoothed = ndimage.convolve(image, filter, mode='wrap')
     return data_smoothed
+
+def fft(data, samples_per_second=1000):
+    """
+    Args:
+        data: numpy array with the data
+        samples_per_second: samples per second
+    Returns:
+        freqs, fft_wave.real: x and y to plot
+    """
+    fft_wave = np.fft.fft(data)
+    freqs = np.fft.fftfreq(n=data.size, d = 1/samples_per_second) 
+    return freqs, fft_wave.real
+    
