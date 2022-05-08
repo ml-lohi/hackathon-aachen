@@ -4,8 +4,13 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 import numpy as np
+from pyparsing import col
 import utils.processing as processing
-from utils.hr_br_math import calculate_br_with_fft, calculate_rates_with_peaks
+from utils.hr_br_math import (
+    calculate_br_with_fft,
+    calculate_rates_with_peaks,
+    calculate_hr_with_fft,
+)
 from utils.helper import filter_gauss
 from ifxdaq.sensor.radar_ifx import RadarIfxAvian
 from tensorflow import keras
@@ -69,27 +74,28 @@ class Application(tk.Frame):
         fig, axs = plt.subplots(3, 1, figsize=(10, 10))
         fig.tight_layout()
         canvas = FigureCanvasTkAgg(fig, master=self.root)
-        canvas.get_tk_widget().grid(row=0, column=1)
+        canvas.get_tk_widget().grid(
+            row=0, column=4, rowspan=10, columnspan=10, sticky="nsew"
+        )
         canvas.draw()
         self.thread = threading.Thread(target=self._process, args=(canvas, axs))
         self.thread.setDaemon(True)
         self.thread.start()
-
         self.plotbutton = tk.Button(
             master=self.root, text="Quit", command=self.root.quit
         )
         self.plotbutton.grid(row=0, column=0)
-
+        my_font = tk.font.Font(self.root, family="Anurati Regular")
         lbl = tk.Label(root, textvariable=self.strVarMoving)
-        lbl.grid()
+        lbl.grid(row=0, column=2, columnspan=2, sticky="nsew")
         lbl = tk.Label(root, textvariable=self.strVarPredicted)
-        lbl.grid()
+        lbl.grid(row=1, column=2, columnspan=2, sticky="nsew")
         lbl = tk.Label(root, textvariable=self.strVarHr)
-        lbl.grid()
+        lbl.grid(row=2, column=2, columnspan=2, sticky="nsew")
         lbl = tk.Label(root, textvariable=self.strVarBr)
-        lbl.grid()
+        lbl.grid(row=3, column=2, columnspan=2, sticky="nsew")
         lbl = tk.Label(root, textvariable=self.strVarBrFFT)
-        lbl.grid()
+        lbl.grid(row=4, column=2, columnspan=2, sticky="W")
 
     def _process(self, canvas, ax):
         """Process the infinite data flow"""
@@ -168,8 +174,8 @@ class Application(tk.Frame):
             ):  # every 5 seconds
                 self.hr, _ = calculate_rates_with_peaks(
                     self.ydata_static[-5000:],
-                    sigma=100,
-                    bandpass_range=[0.6, 4],
+                    sigma=15,
+                    bandpass_range=[1, 3],
                     fs=1000,
                     n=10,
                 )
@@ -180,25 +186,27 @@ class Application(tk.Frame):
                     )
                 self.hrs.append(self.hr)
 
-            if (
-                self.static_counter % 15 == 0 and self.static_counter != 0
-            ):  # every 10 seconds
+            if (self.static_counter % 15 == 0 and self.static_counter != 0) or (
+                self.static_counter > 15 and self.static_counter % 5 == 0
+            ):  # firstly every 15 seconds and than every 5 seconds
 
                 self.br_fft, _, _, _ = calculate_br_with_fft(
-                    self.ydata_static[-15000:], kernel_factor=3
+                    self.ydata_static[-15000:], kernel_factor=3, thr=11000
                 )
                 self.br, _ = calculate_rates_with_peaks(
-                    self.ydata_static[-15000:],
-                    sigma=500,
-                    bandpass_range=[0.1, 0.6],
+                    np.abs(self.ydata_static[-15000:]),
+                    sigma=200,
+                    bandpass_range=[0.1, 1],
                     fs=1000,
+                    amplitude_threshold=3,
+                    min_peaks=3,
                 )
-                if len(self.brs) > 0:
+                if len(self.brs) > 0 and self.br_fft != 0:
                     self.br = np.average(
-                        [self.br, self.brs[-1]],
+                        [self.br_fft, self.brs[-1]],
                         weights=[0.7, 0.3],  # average the BR with the previous one
                     )
-                self.brs.append(self.br)
+                self.brs.append(self.br_fft)
 
             self.static_counter += 1
             self.moving_counter = 0
@@ -213,11 +221,30 @@ class Application(tk.Frame):
         axs[0].plot(
             self.xdata, self.ydata, label=("Moving" if self.moving else "Static")
         )
+        state = ""
+        if self.hr is np.nan:
+            state = "Waiting for data"
+        elif self.hr == 0:
+            state = "No Puls"
+        elif self.hr < 120:
+            state = "Normal Heart Rate"
+        else:
+            state = "Heart Rate after Sport or because of Stress"
 
-        axs[1].set_title(f"HR: {self.hr:.2f}")
+        axs[1].set_title(f"HR: {self.hr:.2f} || {state}")
         axs[1].plot(np.arange(len(self.hrs)), self.hrs)
 
-        axs[2].set_title(f"BR: {self.br:.2f}|| BR_FFT: {self.br_fft:.2f}")
+        state = ""
+        if self.br_fft is np.nan:
+            state = "Waiting for data"
+        elif self.br_fft == 0:
+            state = "No Breathing"
+        elif self.br_fft < 30:
+            state = "Normal Breathing"
+        else:
+            state = "Breathing after Sport or because of Stress"
+
+        axs[2].set_title(f"BR: {self.br_fft:.2f}|| {state}")
         axs[2].plot(np.arange(len(self.brs)), self.brs)
         if self.brs:
             axs[2].set_xlim(0, len(self.brs) + 5)
