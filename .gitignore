@@ -19,7 +19,8 @@ docs/doxyoutput
 __pycache__/
 *.csv
 venv/
-venv_container/
+venv_infineon/
 data/
 *.DS_Store
 .devcontainer/
+test.ipynb
