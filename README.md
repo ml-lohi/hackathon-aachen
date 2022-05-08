@@ -26,12 +26,12 @@ We implemented all the needed [utilities](https://github.com/ml-lohi/hackathon-p
 
 ### 2. Data overlook
 
-Firstly we made an overlook over the data, that the **radar chip** delivers us. We measured for 30s three different data sets: static person, static person but further away from the radar and moving person. Our overlook can be found in [data_overlook.py](https://github.com/ml-lohi/hackathon-private/blob/main/data_overlook.ipynb). 
+Firstly we made an overlook over the data, that the **radar chip** delivers us. We measured for 30s three different data sets: static person, static person but further away from the radar and moving person. Our overlook can be found in [data_overlook.py](https://github.com/ml-lohi/hackathon-private/blob/main/data_overlook.ipynb).
 
 ### 3. Moving/Static classification
 First step is to classify the objects as moving or static. 
 
-The detailed overview is provided in the notebook [models.ipynb](https://github.com/ml-lohi/hackathon-private/blob/main/models.ipynb). In the notebook we measured for 100s each of the team membrs in static as well as in moving state. This delivers us 600s of total data for the analysis.
+The detailed overview is provided in the notebook [models.ipynb](https://github.com/ml-lohi/hackathon-private/blob/main/models.ipynb). In the notebook we measured for 100s each of the team membrs in static as well as in moving state. This delivers us 600s of total data for the analysis. In the notebook [linear_discriminant_ananlysis.ipynb](https://github.com/ml-lohi/hackathon-private/blob/main/linear_discriminant_ananlysis.ipynb) we can find the analysis of the data with help of linear boundry.
 
 ### 4. Vital functions analysis
 For the vital functinality we analyse breathing as well as heart rate. The detailed analysis is implemented in [fourier.ipynb](https://github.com/ml-lohi/hackathon-private/blob/main/fourier.ipynb)
