@@ -39,6 +39,7 @@ For the vital functinality we analyse breathing as well as heart rate. The detai
 ### 5. Final app
 
 The final state of our project was to develop an app, which can be started, when the radar is connected to the laptop. This app is implemented in [main_app.py](https://github.com/ml-lohi/hackathon-private/blob/main/main_app.py). You can start it by simply calling 
+
     python main_app.py
 
 The applicatino plots the phases every second, updates the value of the heart rate every 5s and breathing rate every 10-15s.
