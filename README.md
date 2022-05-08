@@ -20,14 +20,20 @@ The detailed overview is provided in the notebook [models.ipynb](https://github.
 The easiest way for the classification, that can our [data_overlook.ipynb](https://github.com/ml-lohi/hackathon-private/blob/main/data_overlook.ipynb) delivers, is to set the threshold at some specific point.
 
 After doing so we already get very good classification results, approximately 73% accuracy. In real time application it works even withour any further analysis good enough.
+#### Linear Discrimenant 
+
+We as well tried to analyse the obtained data with the linear discrimenant, provided in the notebook liniar_discriminant_analysis.ipynb. 
+
+The difference of moving and static object is obvious as discussed (one has higher values that the other). The linear discrimenant classifier searchs the boundry between the two, moving and static objects. Overall the result obtained with it is good, but makes slight separations of the data already before the classification. Nevertheless the results in the notebook are another example, that the data can clearly be separated with a simple theshold.
 
 #### Simple dense neural network
 
 Nevertheless a simple threshold setting seems to be as a shortcut in the solution. That's why we decided to feed our phases data to the neural network. 
 
-Out of the 600s data we created 600 samples, each containing 1000 phases values. By using the network even with one neuron we would get more than 1000 learnable parameters, which is unfeasible for the amount of data that we have. That's why we decided to average the data of every second and got to the 50 values, that represent every second. This still looked approprite on the plot and the amount of learnable would be much less.
+Out of the 600s data we created 600 samples, each containing 1000 phases values. By using the network even with one neuron we would get more than 1000 learnable parameters, which is unfeasible for the amount of data that we have. That's why we decided to average the data of every second by a step of 20 and got to the 50 values, that represent every second. This still looked approprite on the plot and the amount of learnable would be much less.
 
 Nevertheless we got a very unstable value of accuracy. Of course the reason for this is because the data is simply not enough.
+
 
 #### 1D CNN
 
@@ -40,7 +46,7 @@ For the vital functinolity we analise breathing as well as heart rate. The detai
 
 #### Breathing rate
 
-To find the breathing rate we implemented FFT on the breathing data. We firstly smoothen the data with the gaussian filter, to remove the noise. After applying the low pass filter with 0.1-0.6 we apply the fft. The values 0.2-0.5 correspond to 12-30 breaths per minute, we added and subtracted 0.1 values to the boarders for additional safety. The peak of the fft is set to be the corresponding breathing rate.
+To find the breathing rate we implemented FFT on the breathing data. We firstly smoothen the data with the gaussian filter, to remove the noise. After applying the low pass filter with 0.1-0.8 we apply the fft. The values 0.2-0.5 correspond to 12-30 breaths per minute, we added and subtracted 0.1 values to the boarders for additional safety. The peak of the fft is set to be the corresponding breathing rate.
 
 #### Heart rate
 
