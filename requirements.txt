@@ -3,3 +3,5 @@ numpy
 lsq-ellipse
 circle_fit
 scikit-learn
+tensorflow
+pyinstaller
