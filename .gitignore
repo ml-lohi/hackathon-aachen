@@ -23,3 +23,4 @@ venv_container/
 data/
 *.DS_Store
 .devcontainer/
+models/
