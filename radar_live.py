@@ -1,5 +1,7 @@
 import ifxdaq
 import utils.processing as processing
+from utils.hr_br_math import calculate_br_with_fft, calculate_rates_with_peaks
+from utils.helper import filter_gauss
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -34,22 +36,42 @@ class DynamicUpdate:
 
     def on_launch(self):
         # Set up plot
-        self.figure, self.ax = plt.subplots()
-        (self.lines,) = self.ax.plot([], [], "r-")
+        self.figure, self.ax = plt.subplots(3, 1)
+        (self.lines0,) = self.ax[0].plot([], [], "b-")
+        (self.lines1,) = self.ax[1].plot([], [], "r-")
+        (self.lines21,) = self.ax[2].plot([], [], "b-")
+        (self.lines22,) = self.ax[2].plot([], [], "r-")
+
         # Autoscale on unknown axis and known lims on the other
-        self.ax.set_autoscaley_on(True)
-        self.ax.set_xlim(self.min_x, self.max_x / 1000)
+        for i in range(3):
+            self.ax[i].set_autoscaley_on(True)
+            self.ax[i].grid()
+
+        # self.ax[0].set_autoscaley_on(True)
+        self.ax[0].set_xlim(self.min_x, self.max_x / 1000)
+        self.ax[1].set_xlim(0, 30)
+        # self.ax[1].set_ylim(30, 200)
+        self.ax[2].set_xlim(0, 15)
+        # self.ax[2].set_ylim(10, 50)
         # Other stuff
-        self.ax.grid()
+        # self.ax[0].grid()
         ...
 
-    def on_running(self, xdata, ydata):
+    def on_running(self, xdata, ydata, hrs, brs, brs_fft):
         # Update data (with the new _and_ the old points)
-        self.lines.set_xdata(xdata)
-        self.lines.set_ydata(ydata)
+        self.lines0.set_xdata(xdata)
+        self.lines0.set_ydata(ydata)
+        self.lines1.set_ydata(hrs)
+        self.lines1.set_xdata(np.arange(len(hrs)))
+        self.lines21.set_data(np.arange(len(brs)), brs)
+        self.lines22.set_data(np.arange(len(brs_fft)), brs_fft * 60)
+        # self.ax1.lines.set_ydata(hrs)
+        # self.ax2.lines.set_ydata(brs)
         # Need both of these in order to rescale
-        self.ax.relim()
-        self.ax.autoscale_view()
+        for i in range(3):
+            self.ax[i].relim()
+            self.ax[i].autoscale_view()
+
         # We need to draw *and* flush
         self.figure.canvas.draw()
         self.figure.canvas.flush_events()
@@ -60,13 +82,14 @@ class DynamicUpdate:
         import time
 
         self.on_launch()
-        xdata = []
-        ydata = []
-        raw_data = []
+        xdata, ydata, ydata_static, raw_data = [], [], [], []
+        hrs, hr_errs, brs, br_errs, brs_fft = [], [], [], [], []
         with RadarIfxAvian(
             CONFIG_FILE
         ) as device:  # Initialize the radar with configurations
-            idx = 0
+            hr_counter, br_counter, static_counter, moving_counter = 0, 0, 0, 0
+            hr, br, br_fft = np.nan, np.nan, np.nan
+
             for i_frame, frame in enumerate(
                 device
             ):  # Loop through the frames coming from the radar
@@ -85,18 +108,82 @@ class DynamicUpdate:
                     )  # preprocessing to get the phase information
                     phases = np.mean(phases, axis=0).reshape(-1)
                     moving_value = np.mean(np.abs(phases))
+
                     if moving_value > THRESHOLD:
-                        self.ax.set_title(f"Moving {moving_value}")
+                        self.ax[0].set_title(f"Moving {moving_value:.2f}")
+                        moving_counter += 1
+                        if moving_counter == 3:
+                            moving_counter, static_counter, hr, br, br_fft = (
+                                0,
+                                0,
+                                np.nan,
+                                np.nan,
+                                np.nan,
+                            )
+                            ydata_static = []
+                            brs = []
+                            hrs = []
+                            brs_fft = []
+
                     else:
-                        self.ax.set_title(f"Static {moving_value}")
+                        self.ax[0].set_title(
+                            f"Static {moving_value:.2f} HR = {hr:.2f}, BR = {br:.2f}, BR_FFT = {(br_fft*60):.2f}"
+                        )
+                        ydata_static.extend(
+                            filter_gauss(phases, kernel_factor=3, sigma=20)
+                        )
+                        if static_counter % 5 == 0 and static_counter != 0:
+                            hr, hr_err = calculate_rates_with_peaks(
+                                ydata_static[-5000:],
+                                sigma=100,
+                                bandpass_range=[0.6, 4],
+                                fs=1000,
+                            )
+                            print(f"HR Before = {hr:.2f}")
+                            if len(hrs) > 0:
+                                hr = np.average([hr, hrs[-1]], weights=[0.7, 0.3])
+                            print(f"HR After = {hr:.2f}")
+                            # print(f"HR: {hr}")
+                            hrs.append(hr)
+                            hr_errs.append(hr_err)
+                        if static_counter % 10 == 0 and static_counter != 0:
+                            print(f"in BR state {static_counter}")
+                            br_fft, _, _, _ = calculate_br_with_fft(
+                                ydata_static[-10000:], kernel_factor=3
+                            )
+                            br, br_err = calculate_rates_with_peaks(
+                                ydata_static[-10000:],
+                                sigma=500,
+                                bandpass_range=[0.1, 0.6],
+                                fs=1000,
+                            )
+                            if len(brs) > 0:
+                                print("here br = ", br, brs[-1])
+                                br = np.average([br, brs[-1]], weights=[0.7, 0.3])
+                                print("br", br)
+
+                            print(f"BR: {br}, BR_FFT: {br_fft*60}")
+                            brs.append(br)
+                            br_errs.append(br_err)
+                            brs_fft.append(br_fft)
+                        static_counter += 1
+                        moving_counter = 0
+
                     new_x = np.linspace(
                         len(xdata), len(xdata) + len(phases), len(phases)
                     )
                     xdata.extend(new_x / 1000)
                     ydata.extend(phases)
 
-                    self.on_running(xdata, ydata)
+                    self.on_running(
+                        xdata,
+                        ydata,
+                        hrs,
+                        brs,
+                        np.asarray(brs_fft),
+                    )
                     raw_data = []
+                    # print(f"state_counter: {state_counter}")
                     if xdata[-1] * 1000 > self.max_x:
                         self.figure.canvas.flush_events()
                         xdata = []

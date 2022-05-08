@@ -11,7 +11,7 @@ def calculate_br_with_fft(data, kernel_factor=20, sigma=25):
     filtered = signal.sosfilt(bpm, smoothed_data)
     fft_x_fitlered, fft_y_filtered = fft(filtered)
     bpm_frequency = fft_x_fitlered[np.argmax(fft_y_filtered)]
-    return bpm_frequency, filtered, fft_x_fitlered, fft_y_filtered
+    return 60 * bpm_frequency, filtered, fft_x_fitlered, fft_y_filtered
 
 
 def calculate_rates_with_peaks(
