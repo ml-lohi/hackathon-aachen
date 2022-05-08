@@ -38,7 +38,6 @@ def calculate_rates_with_peaks(
         ax[2].set_xlim(0, 4)
 
     periods = np.diff(x_filtered[peaks])
-    print(periods)
     period_mean, period_err = np.mean(periods), np.std(periods)
     frequency = fs / period_mean * 60
     frequency_err = 1 / period_mean**2 * period_err * fs / 60
