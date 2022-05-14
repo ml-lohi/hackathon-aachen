@@ -1,5 +1,14 @@
 # Hackathon 2022 EESTECH
 
+<p align="center">
+<img src="recordings/image.png" alt="drawing" width="300"/>
+</p>
+<p align="center">
+<a href="#"><img alt="Last commit" src="https://img.shields.io/github/last-commit/ml-lohi/hackathon-private/main?color=green&style=flat"></a>
+<a href="#"><img alt="Videos" src="https://img.shields.io/github/contributors/ml-lohi/hackathon-private?color=blue&style=flat"></a>
+</p>
+
+
 ## What is the project?
 
 In this cool project we work with BGT60TR13C radar chip.
