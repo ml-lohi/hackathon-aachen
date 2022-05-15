@@ -1,4 +1,4 @@
-# Hackathon 2022 EESTECH
+# Hackathon 2022 EESTEC Aachen
 
 <p align="center">
 <img src="recordings/image.png" alt="drawing" width="300"/>
