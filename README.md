@@ -17,6 +17,11 @@ We learn how to find the difference between *moving* and *static* objects, by th
 
 ## Setting up the project
 
+Clone the project from this repository
+
+    git clone https://github.com/ml-lohi/hackathon-private
+    cd hackathon-private
+
 The libraries needed for the project are defined in [requirements.txt](https://github.com/ml-lohi/hackathon-private/blob/main/requirements.txt)
 
 To install needed libraries in your virtual environment run the following commands:
