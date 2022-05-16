@@ -1,4 +1,13 @@
-# Hackathon 2022 EESTECH
+# Hackathon 2022 EESTEC Aachen
+
+<p align="center">
+<img src="recordings/image.png" alt="drawing" width="300"/>
+</p>
+<p align="center">
+<a href="#"><img alt="Last commit" src="https://img.shields.io/github/last-commit/ml-lohi/hackathon-private/main?color=green&style=flat"></a>
+<a href="#"><img alt="Videos" src="https://img.shields.io/github/contributors/ml-lohi/hackathon-private?color=blue&style=flat"></a>
+</p>
+
 
 ## What is the project?
 
@@ -7,6 +16,11 @@ In this cool project we work with BGT60TR13C radar chip.
 We learn how to find the difference between *moving* and *static* objects, by the data that the **radar chip** gives us. When the person is classified as static we make analysis over the vital functions of the person by measure breathing as well as heart rate of the person using the cheap raw data.
 
 ## Setting up the project
+
+Clone the project from this repository
+
+    git clone https://github.com/ml-lohi/hackathon-private
+    cd hackathon-private
 
 The libraries needed for the project are defined in [requirements.txt](https://github.com/ml-lohi/hackathon-private/blob/main/requirements.txt)
 
